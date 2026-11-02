@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#ee1515">
+<title>作业打卡 · 宝可梦收集</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:#eef1f7;color:#26273d;min-height:100vh;overscroll-behavior:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;touch-action:manipulation;-webkit-appearance:none}
+input{font-family:inherit;outline:none;-webkit-appearance:none;border-radius:0}
+.hidden{display:none!important}
+.wrap{max-width:480px;margin:0 auto;min-height:100vh;background:#eef1f7;position:relative;box-shadow:0 0 30px rgba(30,30,60,.12)}
+
+/* ===== 登录注册 ===== */
+#authView{padding:0 0 40px;min-height:100vh;background:linear-gradient(180deg,#ffe14d 0%,#ffce3d 240px,#eef1f7 320px)}
+.auth-hero{text-align:center;padding:56px 20px 18px}
+.pokeball{width:86px;height:86px;border-radius:50%;margin:0 auto 14px;position:relative;background:linear-gradient(#ee1515 0 48%,#2b2b2b 48% 52%,#ffffff 52%);border:3px solid #2b2b2b;box-shadow:0 6px 14px rgba(0,0,0,.25);animation:floaty 2.6s ease-in-out infinite}
+.ball-btn{position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);background:#fff;border:4px solid #2b2b2b;border-radius:50%}
+.auth-hero h1{font-size:24px;margin:0;color:#2b2b2b;letter-spacing:1px}
+.auth-hero p{color:#5a5136;font-size:13px;margin:8px 0 0}
+.auth-card{background:#fff;margin:0 18px;padding:20px 18px 22px;border-radius:18px;box-shadow:0 8px 24px rgba(60,60,100,.12)}
+.seg{display:flex;background:#f0f2f8;border-radius:12px;padding:4px;margin-bottom:14px}
+.seg-btn{flex:1;padding:10px 0;font-size:14px;border-radius:9px;color:#7a7f99;font-weight:600}
+.seg-btn.active{background:#ee1515;color:#fff;box-shadow:0 3px 8px rgba(238,21,21,.35)}
+#authView input{width:100%;border:2px solid #e6e9f2;border-radius:12px;padding:13px 14px;font-size:15px;margin:7px 0;background:#fafbfe}
+#authView input:focus{border-color:#ffcb05;background:#fff}
+.btn-primary{display:block;width:100%;margin:14px 0 4px;padding:14px;font-size:16px;font-weight:700;color:#fff;background:linear-gradient(135deg,#ff4b4b,#ee1515);border-radius:14px;box-shadow:0 6px 14px rgba(238,21,21,.3)}
+.btn-primary:active{transform:scale(.97)}
+.btn-primary[disabled]{opacity:.45;box-shadow:none}
+.msg{min-height:18px;font-size:13px;color:#ee1515;text-align:center;margin:6px 0 0}
+.foot-note{text-align:center;color:#8a8fa8;font-size:12px;margin-top:18px}
+
+/* ===== 顶栏 ===== */
+.topbar{background:linear-gradient(135deg,#f23a3a,#c40000);color:#fff;padding:16px 16px 14px;display:flex;align-items:center;justify-content:space-between;border-radius:0 0 22px 22px;position:sticky;top:0;z-index:20;box-shadow:0 4px 14px rgba(196,0,0,.30)}
+.hello{font-size:17px;font-weight:700}
+.stats{display:flex;gap:7px;margin-top:6px;font-size:11.5px;flex-wrap:wrap}
+.stats span{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);padding:2.5px 9px;border-radius:99px}
+.btn-ghost{background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.6);color:#fff;font-size:12.5px;border-radius:99px;padding:6px 14px}
+
+/* ===== 页面卡片 ===== */
+main{padding:14px 14px 8px}
+.card{background:#fff;border-radius:18px;padding:18px 16px;box-shadow:0 4px 16px rgba(60,60,110,.08);margin-bottom:12px}
+.card h2{margin:0 0 6px;font-size:18px;color:#26273d}
+.sub{font-size:13px;color:#888ea6;margin:0 0 12px;line-height:1.5}
+.tiny{font-size:11px;color:#b0b5cc;text-align:center;margin:8px 0 0}
+.photo-box{border:2.5px dashed #d5dae8;border-radius:14px;background:#fafbfe;min-height:150px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:12px}
+.photo-empty{color:#b9bed3;font-size:13px;text-align:center;line-height:1.8;padding:26px 0;font-size:26px}
+.photo-box img{width:100%;max-height:260px;object-fit:contain;display:block;background:#000}
+.btn-row{display:flex;gap:10px;margin-bottom:12px}
+.btn-line{flex:1;padding:12px 0;border-radius:12px;border:2px solid #ffd84d;background:#fffbe6;color:#8a6d00;font-size:14.5px;font-weight:700}
+.btn-line:active{background:#ffefad}
+.tabbar{position:sticky;bottom:0;z-index:20;display:flex;background:#fff;border-top:1px solid #e8eaf2;padding:6px 4px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(60,60,110,.07)}
+.tab{flex:1;padding:7px 0 3px;font-size:12px;color:#9aa0b8;border-radius:12px;font-weight:600}
+.tab span{display:block;font-size:21px;margin-bottom:1px;transition:transform .2s}
+.tab.active{color:#ee1515}
+.tab.active span{transform:scale(1.15)}
+.dex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:2px 14px 20px}
+.dex-cell{background:#fff;border-radius:14px;padding:10px 6px 8px;text-align:center;position:relative;box-shadow:0 3px 10px rgba(60,60,110,.07)}
+.dex-cell img{width:64px;height:64px;image-rendering:pixelated}
+.dex-cell.locked img{filter:brightness(0);opacity:.25}
+.dex-name{font-size:12px;color:#454a66;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dex-cell.locked .dex-name{color:#b9bed3}
+.count-badge{position:absolute;top:6px;right:6px;background:#3b4cca;color:#fff;font-size:10.5px;font-weight:700;border-radius:99px;padding:1.5px 7px}
+.shiny-badge{position:absolute;top:6px;left:6px;font-size:12px;filter:drop-shadow(0 0 3px #ffd94d)}
+.log-day{font-size:13px;font-weight:700;color:#70779a;margin:14px 16px 6px}
+.log-row{display:flex;align-items:center;gap:10px;background:#fff;margin:0 14px 8px;padding:9px 12px;border-radius:14px;box-shadow:0 3px 10px rgba(60,60,110,.06)}
+.log-row img{width:42px;height:42px;image-rendering:pixelated}
+.log-main{flex:1;font-size:14px;color:#26273d}
+.log-time{font-size:11.5px;color:#a0a4c0;margin-top:2px}
+.log-kind{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px}
+.k-check{background:#e7f8ee;color:#129a52}
+.k-evo{background:#e9eeff;color:#3b4cca}
+.k-shiny{background:#fff3cf;color:#b8860b}
+.overlay{position:fixed;inset:0;background:rgba(20,20,40,.72);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)}
+.scan-card{background:#1d1f33;border-radius:18px;padding:16px;width:100%;max-width:400px}
+.scan-img{position:relative;border-radius:12px;overflow:hidden;background:#000;max-height:46vh;display:flex;align-items:center;justify-content:center}
+.scan-img img{max-width:100%;max-height:46vh;object-fit:contain;display:block}
+.scanline{position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#41ff9a,transparent);box-shadow:0 0 12px #41ff9a;animation:scanline 1.6s ease-in-out infinite}
+.scan-text{color:#c5f9dd;font-size:13.5px;text-align:center;margin:12px 0 8px}
+.scan-bar{background:#333652;height:8px;border-radius:99px;overflow:hidden}
+#scanBarInner{height:100%;width:0;background:linear-gradient(90deg,#41ff9a,#00d26a);border-radius:99px;transition:width .15s}
+.gacha-stage{text-align:center}
+.gacha-ball{width:150px;height:150px;border-radius:50%;position:relative;margin:0 auto;background:radial-gradient(circle at 35% 30%,#ff7a7a,#ee1515 55%),linear-gradient(#fff,#fff);border:5px solid #2b2b2b;box-shadow:0 14px 30px rgba(0,0,0,.45), inset 0 -6px 14px rgba(0,0,0,.2)}
+.gb-mid{position:absolute;left:0;right:0;top:calc(50% - 7px);height:14px;background:#2b2b2b}
+.gb-btn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;background:radial-gradient(circle at 38% 32%,#fff,#dfe2ec);border:6px solid #2b2b2b;border-radius:50%}
+.gacha-ball.shake{animation:ballShake .42s ease-in-out infinite}
+.gacha-hint{color:#fff;font-size:15px;margin-top:22px;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.reveal{position:relative;text-align:center;width:100%;max-width:360px}
+.reveal-card{background:#fff;border-radius:22px;padding:20px 18px 18px;position:relative;overflow:hidden}
+.reveal-card.shiny{background:linear-gradient(160deg,#fff8dd,#fff 55%,#ffefbd);box-shadow:0 0 0 3px #ffd94d, 0 0 34px rgba(255,217,77,.8)}
+.reveal-tag{display:inline-block;background:#3b4cca;color:#fff;font-size:12px;font-weight:700;padding:4px 14px;border-radius:99px;margin-bottom:8px}
+.shiny .reveal-tag{background:linear-gradient(90deg,#ffb400,#ffcf40);color:#7a5200}
+.reveal-imgwrap{height:170px;display:flex;align-items:center;justify-content:center}
+.reveal-imgwrap img{height:160px;image-rendering:pixelated;filter:drop-shadow(0 8px 10px rgba(0,0,0,.25))}
+.reveal-name{font-size:21px;font-weight:800;color:#26273d;margin-top:4px}
+.reveal-name .shiny-name{color:#e5a100;font-size:15px}
+.reveal-sub{font-size:13px;color:#888ea6;margin:6px 0 4px;min-height:18px}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.cf{position:absolute;top:-14px;width:8px;height:12px;border-radius:2px;animation:fall 2.1s ease-in forwards}
+.reveal-pop{animation:popIn .45s cubic-bezier(.2,1.6,.4,1)}
+.detail-card{background:#fff;border-radius:22px;width:100%;max-width:400px;max-height:88vh;overflow-y:auto;padding:16px 16px 20px;position:relative}
+.close-x{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:#f0f2f8;color:#7a7f99;font-size:15px}
+.d-imgwrap{height:185px;display:flex;align-items:center;justify-content:center;position:relative;background:radial-gradient(circle at 50% 60%,#f2f5ff,#e7ecfa);border-radius:16px;overflow:hidden}
+.d-imgwrap img{height:150px;image-rendering:pixelated}
+.d-name{text-align:center;font-size:20px;font-weight:800;margin-top:12px;color:#26273d}
+.d-meta{text-align:center;font-size:12.5px;color:#888ea6;margin-top:5px}
+.d-tip{text-align:center;font-size:12px;color:#b0b5cc;margin:8px 0 0}
+#upgradeBox{margin-top:12px}
+.up-title{font-size:12.5px;font-weight:700;color:#8a6d00;background:#fff8dd;border-radius:10px;padding:7px 10px;margin-bottom:8px}
+.btn-up{display:block;width:100%;margin:7px 0;padding:12px;border-radius:12px;font-size:14px;font-weight:700;color:#fff;background:linear-gradient(135deg,#3b4cca,#2a37a8);box-shadow:0 4px 10px rgba(59,76,202,.3)}
+.btn-up:active{transform:scale(.97)}
+#shinyToggleBox{margin-top:10px}
+.d-logs{margin-top:12px;background:#f7f8fc;border-radius:12px;padding:10px 12px;font-size:12.5px;color:#5a5f7d;line-height:1.9}
+.d-logs b{color:#454a66}
+.bubble{position:absolute;top:16px;left:50%;transform:translateX(-50%);background:#fff;border:2px solid #ffd84d;color:#5a4a00;font-size:12.5px;font-weight:700;padding:6px 13px;border-radius:99px;white-space:nowrap;animation:riseFade 1.4s ease-out forwards;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:2}
+.a-bounce{animation:bounce .6s ease}
+.a-wobble{animation:wobble .7s ease}
+.a-shake{animation:shakeX .5s ease}
+.a-spin{animation:spin .7s ease}
+.a-jump{animation:jump .7s ease}
+#toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(20px);background:#26273d;color:#fff;font-size:13.5px;padding:10px 20px;border-radius:99px;opacity:0;transition:all .25s;z-index:99;pointer-events:none;max-width:80%;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-7px) rotate(4deg)}}
+@keyframes scanline{0%{top:2%}50%{top:96%}100%{top:2%}}
+@keyframes ballShake{0%,100%{transform:rotate(0)}22%{transform:rotate(-17deg)}45%{transform:rotate(13deg)}67%{transform:rotate(-9deg)}85%{transform:rotate(5deg)}}
+@keyframes popIn{0%{transform:scale(.25);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes fall{to{transform:translateY(105vh) rotate(660deg);opacity:.7}}
+@keyframes riseFade{0%{opacity:0;transform:translate(-50%,8px)}15%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-42px)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px)}}
+@keyframes wobble{0%,100%{transform:rotate(0)}25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+@keyframes shakeX{0%,100%{transform:translateX(0)}25%{transform:translateX(-9px) rotate(-5deg)}50%{transform:translateX(9px) rotate(5deg)}75%{transform:translateX(-6px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes jump{0%{transform:translateY(0) scaleY(1)}40%{transform:translateY(-32px)}70%{transform:translateY(0) scaleY(.88)}100%{transform:translateY(0) scaleY(1)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section id="authView">
+    <div class="auth-hero">
+      <div class="pokeball"><span class="ball-mid"></span><span class="ball-btn"></span></div>
+      <h1>作业打卡 · 宝可梦</h1>
+      <p>完成作业打卡，收集初代 151 只宝可梦！</p>
+    </div>
+    <div class="auth-card">
+      <div class="seg">
+        <button id="tabLogin" class="seg-btn active">登录</button>
+        <button id="tabReg" class="seg-btn">注册</button>
+      </div>
+      <input id="inName" placeholder="你的名字 / 昵称" maxlength="12" autocomplete="off">
+      <input id="inPwd" type="password" placeholder="密码（4位以上）" maxlength="20">
+      <button id="btnAuth" class="btn-primary">进入宝可梦世界</button>
+      <p id="authMsg" class="msg"></p>
+    </div>
+    <p class="foot-note">演示版 · 数据保存在本机浏览器 · 素材来源 PokeAPI</p>
+  </section>
+
+  <section id="appView" class="hidden">
+    <header class="topbar">
+      <div class="top-info">
+        <div class="hello" id="helloTxt">你好！</div>
+        <div class="stats" id="statTxt"></div>
+      </div>
+      <button id="btnLogout" class="btn-ghost">退出</button>
+    </header>
+    <main id="pages">
+      <div class="page" id="pageCheck">
+        <div class="card">
+          <h2>📸 今日作业打卡</h2>
+          <p class="sub">拍照或上传完成的作业，检测通过即可抽取宝可梦！</p>
+          <div class="photo-box">
+            <div class="photo-empty" id="photoEmpty">🖼<br>还没有选择照片</div>
+            <img id="photoPreview" class="hidden" alt="作业照片">
+          </div>
+          <div class="btn-row">
+            <button class="btn-line" id="btnCamera">📷 拍照</button>
+            <button class="btn-line" id="btnAlbum">🖼 相册选择</button>
+          </div>
+          <button class="btn-primary" id="btnCheck" disabled>✔ 开始检查作业</button>
+          <p class="tiny">演示版为模拟识别，正式版可接入自动批改接口。</p>
+        </div>
+        <input type="file" id="fileCam" accept="image/*" capture="environment" class="hidden">
+        <input type="file" id="fileAlb" accept="image/*" class="hidden">
+      </div>
+
+      <div class="page hidden" id="pageDex">
+        <div class="card">
+          <h2>🧸 我的宝可梦</h2>
+          <p class="sub" id="dexStat"></p>
+        </div>
+        <div class="dex-grid" id="dexGrid"></div>
+      </div>
+
+      <div class="page hidden" id="pageLog">
+        <div class="card">
+          <h2>📜 收集记录</h2>
+          <p class="sub">每一次打卡与获得都记录在这里</p>
+        </div>
+        <div id="logList"></div>
+      </div>
+    </main>
+    <nav class="tabbar">
+      <button class="tab active" data-page="pageCheck"><span>📸</span>打卡</button>
+      <button class="tab" data-page="pageDex"><span>🧸</span>宝可梦</button>
+      <button class="tab" data-page="pageLog"><span>📜</span>记录</button>
+    </nav>
+  </section>
+</div>
+
+<div id="ovScan" class="overlay hidden">
+  <div class="scan-card">
+    <div class="scan-img"><img id="scanImg" alt=""><div class="scanline"></div></div>
+    <div class="scan-text" id="scanText">正在读取照片…</div>
+    <div class="scan-bar"><div id="scanBarInner"></div></div>
+  </div>
+</div>
+
+<div id="ovGacha" class="overlay hidden">
+  <div class="gacha-stage" id="gachaStage">
+    <div class="gacha-ball" id="gachaBall"><div class="gb-top"></div><div class="gb-mid"></div><div class="gb-btn"></div></div>
+    <p class="gacha-hint" id="gachaHint">作业完成！点按精灵球看看是谁～</p>
+  </div>
+  <div class="reveal hidden" id="revealBox">
+    <div class="confetti" id="confetti"></div>
+    <div class="reveal-card" id="revealCard">
+      <div class="reveal-tag" id="revealTag"></div>
+      <div class="reveal-imgwrap"><img id="revealImg" alt=""></div>
+      <div class="reveal-name" id="revealName"></div>
+      <div class="reveal-sub" id="revealSub"></div>
+      <button class="btn-primary" id="btnRevealOk">太棒了！</button>
+    </div>
+  </div>
+</div>
+
+<div id="ovDetail" class="overlay hidden">
+  <div class="detail-card">
+    <button class="close-x" id="btnCloseDetail">✕</button>
+    <div class="d-imgwrap" id="dImgWrap">
+      <img id="dImg" alt="">
+      <div class="bubble hidden" id="dBubble"></div>
+    </div>
+    <div class="d-name" id="dName"></div>
+    <div class="d-meta" id="dMeta"></div>
+    <p class="d-tip">👆 点一点宝可梦，它会动、会叫哦！</p>
+    <div id="upgradeBox"></div>
+    <div id="shinyToggleBox"></div>
+    <div class="d-logs" id="dDates"></div>
+  </div>
+</div>
+
+<script>
+// ====== 宝可梦数据 ======
+const NAMES=["","妙蛙种子","妙蛙草","妙蛙花","小火龙","火恐龙","喷火龙","杰尼龟","卡咪龟","水箭龟","绿毛虫","铁甲蛹","巴大蝴","独角虫","铁壳蛹","大针蜂","波波","比比鸟","大比鸟","小拉达","拉达","烈雀","大嘴雀","阿柏蛇","阿柏怪","皮卡丘","雷丘","穿山鼠","穿山王","尼多兰","尼多娜","尼多后","尼多朗","尼多力诺","尼多王","皮皮","皮可西","六尾","九尾","胖丁","胖可丁","超音蝠","大嘴蝠","走路草","臭臭花","霸王花","派拉斯","派拉斯特","毛球","摩鲁蛾","地鼠","三地鼠","喵喵","猫老大","可达鸭","哥达鸭","猴怪","火暴猴","卡蒂狗","风速狗","蚊香蝌蚪","蚊香君","蚊香泳士","凯西","勇基拉","胡地","腕力","豪力","怪力","喇叭芽","口呆花","大食花","玛瑙水母","毒刺水母","小拳石","隆隆石","隆隆岩","小火马","烈焰马","呆呆兽","呆壳兽","小磁怪","三合一磁怪","大葱鸭","嘟嘟","嘟嘟利","小海狮","白海狮","臭泥","臭臭泥","大舌贝","刺甲贝","鬼斯","鬼斯通","耿鬼","大岩蛇","催眠貘","引梦貘人","大钳蟹","巨钳蟹","霹雳电球","顽皮雷弹","蛋蛋","椰蛋树","卡拉卡拉","嘎啦嘎啦","飞腿郎","快拳郎","大舌头","瓦斯弹","双弹瓦斯","独角犀牛","钻角犀兽","吉利蛋","蔓藤怪","袋兽","墨海马","海刺龙","角金鱼","金鱼王","海星星","宝石海星","魔墙人偶","飞天螳螂","迷唇姐","电击兽","鸭嘴火兽","凯罗斯","肯泰罗","鲤鱼王","暴鲤龙","拉普拉斯","百变怪","伊布","水伊布","雷伊布","火伊布","多边兽","菊石兽","多刺菊石兽","化石盔","镰刀盔","化石翼龙","卡比兽","急冻鸟","闪电鸟","火焰鸟","迷你龙","哈克龙","快龙","超梦","梦幻"];
+const EVO={1:2,2:3,4:5,5:6,7:8,8:9,10:11,11:12,13:14,14:15,16:17,17:18,19:20,21:22,23:24,25:26,27:28,29:30,30:31,32:33,33:34,35:36,37:38,39:40,41:42,43:44,44:45,46:47,48:49,50:51,52:53,54:55,56:57,58:59,60:61,61:62,63:64,64:65,66:67,67:68,69:70,70:71,72:73,74:75,75:76,77:78,79:80,81:82,84:85,86:87,88:89,90:91,92:93,93:94,96:97,98:99,100:101,102:103,104:105,109:110,111:112,116:117,118:119,120:121,129:130,133:[134,135,136],138:139,140:141,147:148,148:149};
+const CFG={shinyRate:0.10, upNeed:5, upCost:4};
+const BALL="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2096%2096'%3E%3Ccircle%20cx='48'%20cy='48'%20r='44'%20fill='%23fff'%20stroke='%23222'%20stroke-width='4'/%3E%3Cpath%20d='M4%2048a44%2044%200%200%201%2088%200z'%20fill='%23ee1515'/%3E%3Crect%20x='4'%20y='44'%20width='88'%20height='8'%20fill='%23222'/%3E%3Ccircle%20cx='48'%20cy='48'%20r='13'%20fill='%23222'/%3E%3Ccircle%20cx='48'%20cy='48'%20r='7'%20fill='%23fff'/%3E%3C/svg%3E";
+
+// ====== 素材地址（多源回退，国内网络友好） ======
+function imgCandidates(id, shiny, animated){
+  const p = animated
+    ? 'versions/generation-v/black-white/animated/' + (shiny?'shiny/':'') + id + '.gif'
+    : (shiny?'shiny/':'') + id + '.png';
+  return [
+    'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/' + p,
+    'https://fastly.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/' + p,
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + p
+  ];
+}
+function setSprite(img, id, shiny, animated){
+  const list = imgCandidates(id, shiny, animated);
+  let i = 0;
+  img.onerror = function(){
+    i++;
+    if(i < list.length){ img.src = list[i]; }
+    else if(animated){ setSprite(img, id, shiny, false); }
+    else { img.onerror = null; img.src = BALL; }
+  };
+  img.src = list[0];
+}
+function playCry(id){
+  const urls = [
+    'https://cdn.jsdelivr.net/gh/PokeAPI/cries@main/cries/pokemon/latest/' + id + '.ogg',
+    'https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/' + id + '.ogg'
+  ];
+  try{
+    const a = new Audio(urls[0]);
+    a.onerror = function(){ try{ a.src = urls[1]; const pr = a.play(); if(pr) pr.catch(function(){}); }catch(e){} };
+    const p = a.play(); if(p) p.catch(function(){});
+  }catch(e){}
+}
+// ====== 小工具 ======
+const $=function(s){ return document.querySelector(s); };
+function pad3(n){ return String(n).padStart(3,'0'); }
+function fmtDate(d){ return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function fmtTime(d){ return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+let toastT=null;
+function toast(msg){
+  let t=document.getElementById('toast');
+  if(!t){ t=document.createElement('div'); t.id='toast'; document.body.appendChild(t); }
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('show'); },1800);
+}
+
+// ====== 存储与账号 ======
+function loadUsers(){ try{ return JSON.parse(localStorage.getItem('hw_users')||'{}'); }catch(e){ return {}; } }
+function saveUsers(u){ localStorage.setItem('hw_users', JSON.stringify(u)); }
+function loadDB(name){
+  try{ const d=JSON.parse(localStorage.getItem('hw_data_'+name)||'null');
+       if(d&&d.col&&d.log) return d; }catch(e){}
+  return {col:{}, log:[], days:{}};
+}
+function saveDB(){ localStorage.setItem('hw_data_'+me, JSON.stringify(db)); }
+let me=null, db=null, mode='login';
+
+function setMode(m){
+  mode=m;
+  $('#tabLogin').classList.toggle('active', m==='login');
+  $('#tabReg').classList.toggle('active', m==='reg');
+  $('#btnAuth').textContent = m==='login' ? '进入宝可梦世界' : '注册并开始冒险';
+  $('#authMsg').textContent='';
+}
+$('#tabLogin').onclick=function(){ setMode('login'); };
+$('#tabReg').onclick=function(){ setMode('reg'); };
+$('#btnAuth').onclick=function(){
+  const n=$('#inName').value.trim(), p=$('#inPwd').value;
+  if(!n){ $('#authMsg').textContent='请填写昵称'; return; }
+  if(p.length<4){ $('#authMsg').textContent='密码至少4位'; return; }
+  const users=loadUsers();
+  if(mode==='reg'){
+    if(users[n]){ $('#authMsg').textContent='这个名字已经被用啦'; return; }
+    users[n]={pwd:btoa(unescape(encodeURIComponent(p))), created:Date.now()};
+    saveUsers(users);
+  }else{
+    if(!users[n] || users[n].pwd!==btoa(unescape(encodeURIComponent(p)))){
+      $('#authMsg').textContent='昵称或密码不对，再试试'; return;
+    }
+  }
+  localStorage.setItem('hw_session', n);
+  enterApp(n);
+};
+function enterApp(name){
+  me=name; db=loadDB(name);
+  $('#helloTxt').textContent='你好，'+name+'！';
+  $('#authView').classList.add('hidden');
+  $('#appView').classList.remove('hidden');
+  renderAll();
+}
+$('#btnLogout').onclick=function(){
+  localStorage.removeItem('hw_session');
+  location.reload();
+};
+
+// ====== 底部导航 ======
+document.querySelectorAll('.tab').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.add('hidden'); });
+    document.getElementById(btn.dataset.page).classList.remove('hidden');
+  });
+});
+
+// ====== 打卡流程 ======
+let photoData=null, busy=false;
+$('#btnCamera').onclick=function(){ $('#fileCam').click(); };
+$('#btnAlbum').onclick=function(){ $('#fileAlb').click(); };
+function bindFile(input){
+  input.addEventListener('change', function(e){
+    const f=e.target.files && e.target.files[0];
+    if(!f) return;
+    const r=new FileReader();
+    r.onload=function(){
+      photoData=r.result;
+      const img=$('#photoPreview');
+      img.src=photoData;
+      img.classList.remove('hidden');
+      $('#photoEmpty').classList.add('hidden');
+      $('#btnCheck').disabled=false;
+    };
+    r.readAsDataURL(f);
+    input.value='';
+  });
+}
+bindFile($('#fileCam')); bindFile($('#fileAlb'));
+
+$('#btnCheck').onclick=function(){
+  if(busy || !photoData) return;
+  busy=true;
+  const ov=$('#ovScan');
+  $('#scanImg').src=photoData;
+  ov.classList.remove('hidden');
+  const texts=['正在读取照片…','识别书写内容…','检查作业完成度…','确认作业全部完成…'];
+  let i=0, pct=0;
+  $('#scanText').textContent=texts[0];
+  $('#scanBarInner').style.width='0%';
+  const timer=setInterval(function(){
+    pct+=Math.random()*9+4;
+    if(pct>100) pct=100;
+    $('#scanBarInner').style.width=pct+'%';
+    const idx=Math.min(texts.length-1, Math.floor(pct/28));
+    if(idx!==i){ i=idx; $('#scanText').textContent=texts[i]; }
+    if(pct>=100){
+      clearInterval(timer);
+      $('#scanText').textContent='✔ 检查通过，作业完成！';
+      setTimeout(finishCheck, 550);
+    }
+  }, 130);
+};
+function finishCheck(){
+  $('#ovScan').classList.add('hidden');
+  busy=false;
+  const now=new Date();
+  db.days[fmtDate(now)]=1;
+  const id=1+Math.floor(Math.random()*151);
+  const shiny=Math.random()<CFG.shinyRate;
+  grant(id, shiny, '打卡');
+  saveDB(); renderAll();
+  openGacha(id, shiny, 'check');
+}
+
+// ====== 获得与抽卡 ======
+function grant(id, shiny, kind){
+  if(!db.col[id]) db.col[id]={n:0,s:0};
+  if(shiny) db.col[id].s++; else db.col[id].n++;
+  const now=new Date();
+  db.log.unshift({id:id, shiny:shiny, kind:kind, d:fmtDate(now), t:fmtTime(now)});
+}
+function openGacha(id, shiny, kind){
+  $('#revealBox').classList.add('hidden');
+  $('#gachaStage').classList.remove('hidden');
+  const ball=$('#gachaBall');
+  ball.classList.remove('shake');
+  $('#ovGacha').classList.remove('hidden');
+  $('#gachaHint').textContent = kind==='check' ? '作业完成！点按精灵球看看是谁～' : '见证奇迹的时刻！';
+  ball.onclick=function(){
+    ball.onclick=null;
+    ball.classList.add('shake');
+    $('#gachaHint').textContent='…';
+    setTimeout(function(){ showReveal(id, shiny, kind); }, 1350);
+  };
+}
+function showReveal(id, shiny, kind){
+  $('#gachaStage').classList.add('hidden');
+  const box=$('#revealBox');
+  box.classList.remove('hidden');
+  const card=$('#revealCard');
+  card.classList.remove('reveal-pop','shiny');
+  void card.offsetWidth;
+  card.classList.add('reveal-pop');
+  if(shiny) card.classList.add('shiny');
+  $('#revealTag').textContent = kind==='evolve' ? '⬆ 进化成功' : kind==='shiny' ? '✨ 闪光升星' : (shiny ? '✨ 闪光宝可梦 ✨' : '🎉 打卡奖励');
+  setSprite($('#revealImg'), id, shiny, true);
+  const c=db.col[id];
+  const dup=(kind==='check') ? (shiny? c.s : c.n) : 1;
+  let sub='';
+  if(kind==='check'){
+    if(dup===1 && ((c.n+c.s)===1)){
+      sub='🎊 新伙伴！';
+    }else{
+      const ownN=c.n;
+      if(!shiny && ownN<CFG.upNeed){ sub='重复 +1（已有 '+ownN+' 只，集齐 '+CFG.upNeed+' 只可升级）'; }
+      else if(!shiny){ sub='重复 +1（可以升级啦，去「宝可梦」页看看）'; }
+      else{ sub='闪光 '+(c.s>1?'×'+c.s:'收入图鉴！'); }
+    }
+  }
+  $('#revealSub').textContent=sub;
+  playCry(id);
+  spawnConfetti();
+}
+const CFCOLORS=['#ee1515','#ffcb05','#3b4cca','#30c17b','#ff9d47','#c06acf'];
+function spawnConfetti(){
+  const box=$('#confetti');
+  box.innerHTML='';
+  for(let i=0;i<28;i++){
+    const s=document.createElement('span');
+    s.className='cf';
+    s.style.left=(Math.random()*100)+'%';
+    s.style.background=CFCOLORS[i%CFCOLORS.length];
+    s.style.animationDelay=(Math.random()*0.5)+'s';
+    if(i%2) s.style.borderRadius='50%';
+    box.appendChild(s);
+  }
+}
+$('#btnRevealOk').onclick=function(){
+  $('#ovGacha').classList.add('hidden');
+  photoData=null;
+  $('#photoPreview').classList.add('hidden');
+  $('#photoEmpty').classList.remove('hidden');
+  $('#btnCheck').disabled=true;
+};
+// ====== 统计与渲染 ======
+function statCounts(){
+  let caught=0, shiny=0, total=0;
+  Object.keys(db.col).forEach(function(k){
+    const c=db.col[k];
+    if(c.n+c.s>0) caught++;
+    shiny+=c.s; total+=c.n+c.s;
+  });
+  const days=Object.keys(db.days||{}).length;
+  return {caught:caught, shiny:shiny, total:total, days:days};
+}
+function renderAll(){ renderStats(); renderDex(); renderLog(); }
+function renderStats(){
+  const s=statCounts();
+  $('#statTxt').innerHTML='<span>图鉴 '+s.caught+'/151</span><span>✨'+s.shiny+'</span><span>打卡 '+s.days+' 天</span>';
+}
+
+// ====== 图鉴网格 ======
+function renderDex(){
+  const g=$('#dexGrid');
+  g.innerHTML='';
+  const s=statCounts();
+  $('#dexStat').textContent='已收集 '+s.caught+' / 151 · 闪光 '+s.shiny+' 只 · 点击可互动';
+  for(let id=1;id<=151;id++){
+    const c=db.col[id]||{n:0,s:0};
+    const got=c.n+c.s>0;
+    const cell=document.createElement('div');
+    cell.className='dex-cell'+(got?'':' locked');
+    const img=document.createElement('img');
+    setSprite(img, id, c.n===0&&c.s>0, false);
+    cell.appendChild(img);
+    if(got){
+      if(c.n>1){
+        const b=document.createElement('span');
+        b.className='count-badge'; b.textContent='×'+c.n;
+        cell.appendChild(b);
+      }
+      if(c.s>0){
+        const sb=document.createElement('span');
+        sb.className='shiny-badge'; sb.textContent=c.s>1?'✨'+c.s:'✨';
+        cell.appendChild(sb);
+      }
+    }
+    const nm=document.createElement('div');
+    nm.className='dex-name';
+    nm.textContent = got ? NAMES[id] : 'No.'+pad3(id);
+    // 确保显示中文名
+    cell.appendChild(nm);
+    cell.onclick=(function(cid, cgot){
+      return function(){
+        if(cgot){ openDetail(cid); }
+        else { toast('还没有获得，快去作业打卡吧！'); }
+      };
+    })(id, got);
+    g.appendChild(cell);
+  }
+}
+
+// ====== 收集记录 ======
+function renderLog(){
+  const box=$('#logList');
+  box.innerHTML='';
+  if(!db.log.length){
+    box.innerHTML='<div class="card" style="text-align:center;color:#a0a4c0;font-size:13px;padding:26px 14px">还没有记录，<br>完成一次作业打卡就会出现在这里！</div>';
+    return;
+  }
+  let lastD=null;
+  db.log.slice(0,200).forEach(function(r){
+    if(r.d!==lastD){
+      lastD=r.d;
+      const h=document.createElement('div');
+      h.className='log-day'; h.textContent='📅 '+r.d;
+      box.appendChild(h);
+    }
+    const row=document.createElement('div');
+    row.className='log-row';
+    const img=document.createElement('img');
+    setSprite(img, r.id, !!r.shiny, false);
+    row.appendChild(img);
+    const main=document.createElement('div');
+    main.className='log-main';
+    const b1=document.createElement('b');
+    b1.textContent=NAMES[r.id]+' ';
+    main.appendChild(b1);
+    if(r.shiny){
+      const st=document.createElement('span');
+      st.style.color='#e5a100'; st.textContent='✨闪光';
+      main.appendChild(st);
+    }
+    const sub=document.createElement('div');
+    sub.className='log-time'; sub.textContent=r.t+' · No.'+pad3(r.id);
+    main.appendChild(sub);
+    row.appendChild(main);
+    const kind=document.createElement('span');
+    kind.className='log-kind k-'+({'打卡':'check','进化':'evo','闪光':'shiny'}[r.kind]||'check');
+    kind.textContent=r.kind;
+    row.appendChild(kind);
+    box.appendChild(row);
+  });
+}
+
+// ====== 详情与互动 ======
+let dId=0, dShinyView=false;
+const ANIMS=['a-bounce','a-wobble','a-shake','a-spin','a-jump'];
+const REACTS=[
+  '「'+''+'」开心地跳了起来！',
+  '使出了电光一闪！⚡',
+  '原地转了个圈～',
+  '对你撒了个娇 💕',
+  '发出了欢快的叫声！',
+  '蹦蹦跳跳，充满活力！',
+  '「'+''+'」信任地看着你。'
+];
+function openDetail(id){
+  dId=id;
+  const c=db.col[id]||{n:0,s:0};
+  dShinyView=(c.n===0&&c.s>0);
+  drawDetail();
+  $('#ovDetail').classList.remove('hidden');
+}
+function drawDetail(){
+  const c=db.col[dId]||{n:0,s:0};
+  const img=$('#dImg');
+  setSprite(img, dId, dShinyView, true);
+  $('#dName').innerHTML='No.'+pad3(dId)+' '+NAMES[dId]+(dShinyView?' <span class="shiny-name">✨闪光</span>':'');
+  let first='—';
+  for(let i=db.log.length-1;i>=0;i--){
+    if(db.log[i].id===dId){ first=db.log[i].d; break; }
+  }
+  $('#dMeta').textContent='普通 ×'+c.n+' · 闪光 ×'+c.s+' · 首次获得 '+first;
+  drawUpgradeBox();
+  drawShinyToggle();
+  const mine=db.log.filter(function(r){ return r.id===dId; }).slice(0,6);
+  const dd=$('#dDates');
+  if(mine.length){
+    dd.innerHTML='';
+    const title=document.createElement('b');
+    title.textContent='最近获得：';
+    dd.appendChild(title);
+    mine.forEach(function(r){
+      const line=document.createElement('div');
+      line.textContent=r.d+' '+r.t+' · '+r.kind+(r.shiny?' ✨':'');
+      dd.appendChild(line);
+    });
+    dd.classList.remove('hidden');
+  }else{
+    dd.classList.add('hidden');
+  }
+}
+function drawShinyToggle(){
+  const box=$('#shinyToggleBox');
+  const c=db.col[dId]||{n:0,s:0};
+  box.innerHTML='';
+  if(c.s>0){
+    const b=document.createElement('button');
+    b.className='btn-line';
+    b.textContent=dShinyView?'🔁 看普通形态':'✨ 看闪光形态';
+    b.onclick=function(){ dShinyView=!dShinyView; drawDetail(); };
+    box.appendChild(b);
+    box.classList.remove('hidden');
+  }else{
+    box.classList.add('hidden');
+  }
+}
+function drawUpgradeBox(){
+  const box=$('#upgradeBox');
+  box.innerHTML='';
+  const c=db.col[dId]||{n:0,s:0};
+  let any=false;
+  if(c.n>=CFG.upNeed){
+    any=true;
+    box.appendChild(upTitle());
+    const t=EVO[dId];
+    if(t){
+      const tn = Array.isArray(t) ? '随机进化形态' : NAMES[t];
+      box.appendChild(upBtn('⬆ 进化为「'+tn+'」（消耗 4 只普通）', function(){
+        doUpgrade(false,'evolve');
+      }));
+    }
+    box.appendChild(upBtn('✨ 升级为闪光（消耗 4 只普通）', function(){
+      doUpgrade(false,'shiny');
+    }));
+  }
+  if(c.s>=CFG.upNeed && EVO[dId]){
+    if(!any){ box.appendChild(upTitle()); }
+    any=true;
+    box.appendChild(upBtn('⬆✨ 闪光进化（消耗 4 只闪光）', function(){
+      doUpgrade(true,'evolve');
+    }));
+  }
+  box.classList.toggle('hidden', !any);
+}
+function upTitle(){
+  const t=document.createElement('div');
+  t.className='up-title';
+  t.textContent='🎖 重复收集满 5 只，可以升级：';
+  return t;
+}
+function upBtn(label, fn){
+  const b=document.createElement('button');
+  b.className='btn-up';
+  b.textContent=label;
+  b.onclick=fn;
+  return b;
+}
+function doUpgrade(shinySrc, kind){
+  const c=db.col[dId];
+  if(shinySrc){ if(c.s<CFG.upNeed) return; c.s-=CFG.upCost; }
+  else { if(c.n<CFG.upNeed) return; c.n-=CFG.upCost; }
+  let target=dId, isShiny=shinySrc, k='闪光';
+  if(kind==='evolve'){
+    let t=EVO[dId];
+    if(Array.isArray(t)) t=t[Math.floor(Math.random()*t.length)];
+    target=t; k='进化';
+  }
+  $('#ovDetail').classList.add('hidden');
+  grant(target, isShiny, k);
+  saveDB(); renderAll();
+  openGacha(target, isShiny, kind==='evolve'?'evolve':'shiny');
+}
+$('#btnCloseDetail').onclick=function(){ $('#ovDetail').classList.add('hidden'); };
+$('#dImg').addEventListener('click', function(){
+  const img=$('#dImg');
+  ANIMS.forEach(function(a){ img.classList.remove(a); });
+  void img.offsetWidth;
+  const a=ANIMS[Math.floor(Math.random()*ANIMS.length)];
+  img.classList.add(a);
+  playCry(dId);
+  let text=REACTS[Math.floor(Math.random()*REACTS.length)];
+  text=NAMES[dId]+text;
+  showBubble(text);
+});
+let bubbleT=null;
+function showBubble(text){
+  const b=$('#dBubble');
+  b.textContent=text;
+  b.classList.remove('hidden');
+  b.style.animation='none';
+  void b.offsetWidth;
+  b.style.animation='';
+  clearTimeout(bubbleT);
+  bubbleT=setTimeout(function(){ b.classList.add('hidden'); }, 1400);
+}
+
+// ====== 启动 ======
+(function init(){
+  const s=localStorage.getItem('hw_session');
+  if(s && loadUsers()[s]){ enterApp(s); }
+})();
+</script>
+</body>
+</html>
+
